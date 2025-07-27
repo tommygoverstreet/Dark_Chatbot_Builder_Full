@@ -1,0 +1,112 @@
+{
+  "name": "dark-chatbot-builder-pro",
+  "version": "1.0.0",
+  "description": "Professional chatbot builder with advanced HTML, CSS, and JavaScript code generation capabilities. Features Bootstrap templates, WYSIWYG editor, live preview, and offline support.",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000 || python3 -m http.server 8000 || php -S localhost:8000 || npx serve .",
+    "build": "echo 'Static site - no build process required'",
+    "test": "echo 'No tests configured yet'",
+    "lint": "echo 'No linting configured yet'",
+    "serve": "npx serve . -s -l 8000",
+    "dev": "npx live-server --port=8000 --entry-file=index.html",
+    "deploy": "echo 'Deploy to your preferred hosting platform'",
+    "validate": "npx html-validate index.html && echo 'HTML validation passed'",
+    "lighthouse": "npx lighthouse-ci autorun",
+    "pwa-audit": "npx pwa-asset-generator --help"
+  },
+  "keywords": [
+    "chatbot",
+    "builder",
+    "html",
+    "css",
+    "javascript",
+    "bootstrap",
+    "wysiwyg",
+    "code-generator",
+    "pwa",
+    "offline",
+    "no-code",
+    "low-code",
+    "web-development",
+    "responsive-design",
+    "template-builder"
+  ],
+  "author": {
+    "name": "Tommy Overstreet",
+    "email": "tommy@darkchatbotbuilder.com",
+    "url": "https://darkchatbotbuilder.com"
+  },
+  "license": "MIT",
+  "homepage": "https://darkchatbotbuilder.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tommyoverstreet/dark-chatbot-builder-pro.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tommyoverstreet/dark-chatbot-builder-pro/issues",
+    "email": "support@darkchatbotbuilder.com"
+  },
+  "engines": {
+    "node": ">=14.0.0",
+    "npm": ">=6.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "devDependencies": {
+    "serve": "^14.2.1",
+    "live-server": "^1.2.2",
+    "lighthouse-ci": "^0.12.0",
+    "html-validate": "^8.7.4",
+    "pwa-asset-generator": "^6.3.1"
+  },
+  "pwa": {
+    "name": "Dark Chatbot Builder Pro",
+    "short_name": "Chatbot Builder",
+    "theme_color": "#6f42c1",
+    "background_color": "#1a1a2e",
+    "display": "standalone",
+    "orientation": "portrait-primary",
+    "scope": "/",
+    "start_url": "/"
+  },
+  "config": {
+    "port": 8000,
+    "host": "localhost"
+  },
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/tommyoverstreet"
+  },
+  "files": [
+    "index.html",
+    "app.js",
+    "custom.css",
+    "manifest.json",
+    "sw.js",
+    "favicon.svg",
+    "favicon.ico",
+    "social-preview.svg",
+    "icons/",
+    "sitemap.xml",
+    "robots.txt",
+    "README.md"
+  ],
+  "directories": {
+    "doc": "docs",
+    "test": "tests"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ]
+}
