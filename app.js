@@ -1,88 +1,88 @@
-  // Global variables
-    let triggers = JSON.parse(localStorage.getItem('chatbotTriggers')) || [];
-    let csvData = JSON.parse(localStorage.getItem('chatbotCSV')) || {};
-    let currentResponseType = '';
-    let emailEditor = null;
-    let quoteEditor = null;
+// Global variables
+let triggers = JSON.parse(localStorage.getItem('chatbotTriggers')) || [];
+let csvData = JSON.parse(localStorage.getItem('chatbotCSV')) || {};
+let currentResponseType = '';
+let emailEditor = null;
+let quoteEditor = null;
 
-    // Initialize the application
-    document.addEventListener('DOMContentLoaded', function () {
-      initializeApp();
-      setupEventListeners();
-      loadData();
-      updateStats();
+// Initialize the application
+document.addEventListener('DOMContentLoaded', function () {
+  initializeApp();
+  setupEventListeners();
+  loadData();
+  updateStats();
+});
+
+function initializeApp() {
+  // Setup response type selector
+  document.querySelectorAll('.response-type-btn').forEach(btn => {
+    btn.addEventListener('click', function () {
+      selectResponseType(this.dataset.type);
     });
+  });
 
-    function initializeApp() {
-      // Setup response type selector
-      document.querySelectorAll('.response-type-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-          selectResponseType(this.dataset.type);
-        });
-      });
+  // Setup CSV upload
+  const csvUpload = document.getElementById('csvUpload');
+  csvUpload.addEventListener('change', handleCSVUpload);
 
-      // Setup CSV upload
-      const csvUpload = document.getElementById('csvUpload');
-      csvUpload.addEventListener('change', handleCSVUpload);
+  // Setup drag and drop for CSV
+  const dropZone = document.querySelector('.file-drop-zone');
+  dropZone.addEventListener('dragover', handleDragOver);
+  dropZone.addEventListener('drop', handleDrop);
+  dropZone.addEventListener('dragleave', handleDragLeave);
 
-      // Setup drag and drop for CSV
-      const dropZone = document.querySelector('.file-drop-zone');
-      dropZone.addEventListener('dragover', handleDragOver);
-      dropZone.addEventListener('drop', handleDrop);
-      dropZone.addEventListener('dragleave', handleDragLeave);
+  // Setup search
+  document.getElementById('searchTriggers').addEventListener('input', filterTriggers);
 
-      // Setup search
-      document.getElementById('searchTriggers').addEventListener('input', filterTriggers);
-
-      // Setup preview input
-      document.getElementById('previewInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-          sendPreviewMessage();
-        }
-      });
+  // Setup preview input
+  document.getElementById('previewInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      sendPreviewMessage();
     }
+  });
+}
 
-    function setupEventListeners() {
-      // Auto-save functionality
-      setInterval(function () {
-        saveData();
-      }, 30000); // Auto-save every 30 seconds
+function setupEventListeners() {
+  // Auto-save functionality
+  setInterval(function () {
+    saveData();
+  }, 30000); // Auto-save every 30 seconds
 
-      // Window beforeunload
-      window.addEventListener('beforeunload', function () {
-        saveData();
-      });
-    }
+  // Window beforeunload
+  window.addEventListener('beforeunload', function () {
+    saveData();
+  });
+}
 
-    function selectResponseType(type) {
-      currentResponseType = type;
+function selectResponseType(type) {
+  currentResponseType = type;
 
-      // Update UI
-      document.querySelectorAll('.response-type-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.querySelector(`[data-type="${type}"]`).classList.add('active');
+  // Update UI
+  document.querySelectorAll('.response-type-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.querySelector(`[data-type="${type}"]`).classList.add('active');
 
-      // Generate response content form
-      generateResponseForm(type);
-    }
+  // Generate response content form
+  generateResponseForm(type);
+}
 
-    function generateResponseForm(type) {
-      const container = document.getElementById('responseContent');
-      container.style.display = 'block';
+function generateResponseForm(type) {
+  const container = document.getElementById('responseContent');
+  container.style.display = 'block';
 
-      let html = '';
+  let html = '';
 
-      switch (type) {
-        case 'text':
-          html = `
+  switch (type) {
+    case 'text':
+      html = `
                         <label class="form-label">Response Text</label>
                         <textarea id="responseText" class="form-control" rows="3" placeholder="Enter your response text..."></textarea>
                     `;
-          break;
+      break;
 
-        case 'url':
-          html = `
+    case 'url':
+      html = `
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">URL</label>
@@ -98,10 +98,10 @@
                             <label class="form-check-label" for="openInNewTab">Open in new tab</label>
                         </div>
                     `;
-          break;
+      break;
 
-        case 'document':
-          html = `
+    case 'document':
+      html = `
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">Document URL</label>
@@ -117,10 +117,10 @@
                             <label class="form-check-label" for="embedDocument">Embed document (if supported)</label>
                         </div>
                     `;
-          break;
+      break;
 
-        case 'email':
-          html = `
+    case 'email':
+      html = `
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">Email Subject</label>
@@ -134,10 +134,10 @@
                         <label class="form-label mt-3">Email Template</label>
                         <div id="emailEditor" style="height: 200px;"></div>
                     `;
-          break;
+      break;
 
-        case 'quote':
-          html = `
+    case 'quote':
+      html = `
                         <label class="form-label">Quote Template</label>
                         <div id="quoteEditor" style="height: 200px;"></div>
                         <div class="form-check mt-2">
@@ -145,10 +145,10 @@
                             <label class="form-check-label" for="useCSVData">Use CSV data for calculations</label>
                         </div>
                     `;
-          break;
+      break;
 
-        case 'csv':
-          html = `
+    case 'csv':
+      html = `
                         <div class="row">
                             <div class="col-md-6">
                                 <label class="form-label">CSV File</label>
@@ -170,10 +170,10 @@
                             <input type="text" id="csvFilterColumn" class="form-control" placeholder="e.g., name, company">
                         </div>
                     `;
-          break;
+      break;
 
-        case 'html':
-          html = `
+    case 'html':
+      html = `
                         <div class="side-notes">
                             <h6><i class="bi bi-lightbulb"></i> HTML Code Block Builder</h6>
                             <p>Create responsive HTML components with Bootstrap classes. Perfect for landing pages, forms, cards, and layouts.</p>
@@ -229,10 +229,10 @@
                             </ol>
                         </div>
                     `;
-          break;
+      break;
 
-        case 'javascript':
-          html = `
+    case 'javascript':
+      html = `
                         <div class="side-notes">
                             <h6><i class="bi bi-code-slash"></i> JavaScript Snippet Builder</h6>
                             <p>Create interactive JavaScript functions with Bootstrap integration. Includes form validation, animations, API calls, and more.</p>
@@ -291,10 +291,10 @@ function myFunction() {
                             </ol>
                         </div>
                     `;
-          break;
+      break;
 
-        case 'template':
-          html = `
+    case 'template':
+      html = `
                         <div class="side-notes">
                             <h6><i class="bi bi-palette"></i> Bootstrap Template Generator</h6>
                             <p>Choose from professional templates and customize them instantly. No coding required!</p>
@@ -452,181 +452,181 @@ function myFunction() {
                             </ol>
                         </div>
                     `;
-          break;
-      }
+      break;
+  }
 
-      container.innerHTML = html;
+  container.innerHTML = html;
 
-      // Initialize editors if needed
-      setTimeout(() => {
-        if (type === 'email' && !emailEditor) {
-          emailEditor = new Quill('#emailEditor', {
-            theme: 'snow',
-            placeholder: 'Compose your email template...',
-            modules: {
-              toolbar: [
-                ['bold', 'italic', 'underline'],
-                ['link'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                ['clean']
-              ]
-            }
-          });
+  // Initialize editors if needed
+  setTimeout(() => {
+    if (type === 'email' && !emailEditor) {
+      emailEditor = new Quill('#emailEditor', {
+        theme: 'snow',
+        placeholder: 'Compose your email template...',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline'],
+            ['link'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            ['clean']
+          ]
         }
-
-        if (type === 'quote' && !quoteEditor) {
-          quoteEditor = new Quill('#quoteEditor', {
-            theme: 'snow',
-            placeholder: 'Create your quote template...',
-            modules: {
-              toolbar: [
-                ['bold', 'italic', 'underline'],
-                ['link'],
-                [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                [{ 'header': [1, 2, 3, false] }],
-                ['clean']
-              ]
-            }
-          });
-        }
-
-        if (type === 'csv') {
-          populateCSVSelect();
-        }
-      }, 100);
-    }
-
-    function populateCSVSelect() {
-      const select = document.getElementById('csvFileSelect');
-      if (!select) return;
-
-      select.innerHTML = '<option value="">Select CSV file...</option>';
-
-      Object.keys(csvData).forEach(filename => {
-        const option = document.createElement('option');
-        option.value = filename;
-        option.textContent = filename;
-        select.appendChild(option);
       });
     }
 
-    function addTrigger() {
-      const triggerText = document.getElementById('triggerInput').value.trim();
-      const category = document.getElementById('categorySelect').value;
-
-      if (!triggerText) {
-        showToast('Please enter a trigger phrase', 'warning');
-        return;
-      }
-
-      if (!currentResponseType) {
-        showToast('Please select a response type', 'warning');
-        return;
-      }
-
-      const responseData = gatherResponseData();
-      if (!responseData) {
-        showToast('Please fill in the response content', 'warning');
-        return;
-      }
-
-      const trigger = {
-        id: Date.now(),
-        text: triggerText,
-        category: category,
-        responseType: currentResponseType,
-        responseData: responseData,
-        created: new Date().toISOString(),
-        usage: 0
-      };
-
-      triggers.push(trigger);
-      saveData();
-      renderTriggers();
-      updateStats();
-      clearForm();
-
-      showToast('Trigger added successfully!', 'success');
+    if (type === 'quote' && !quoteEditor) {
+      quoteEditor = new Quill('#quoteEditor', {
+        theme: 'snow',
+        placeholder: 'Create your quote template...',
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline'],
+            ['link'],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'header': [1, 2, 3, false] }],
+            ['clean']
+          ]
+        }
+      });
     }
 
-    function gatherResponseData() {
-      switch (currentResponseType) {
-        case 'text':
-          const text = document.getElementById('responseText').value.trim();
-          return text ? { text } : null;
-
-        case 'url':
-          const url = document.getElementById('responseUrl').value.trim();
-          const linkText = document.getElementById('responseLinkText').value.trim();
-          const newTab = document.getElementById('openInNewTab').checked;
-          return url ? { url, linkText: linkText || url, newTab } : null;
-
-        case 'document':
-          const docUrl = document.getElementById('documentUrl').value.trim();
-          const docTitle = document.getElementById('documentTitle').value.trim();
-          const embed = document.getElementById('embedDocument').checked;
-          return docUrl ? { url: docUrl, title: docTitle || 'Document', embed } : null;
-
-        case 'email':
-          const subject = document.getElementById('emailSubject').value.trim();
-          const recipient = document.getElementById('emailRecipient').value.trim();
-          const content = emailEditor ? emailEditor.root.innerHTML : '';
-          return subject ? { subject, recipient, content } : null;
-
-        case 'quote':
-          const quoteContent = quoteEditor ? quoteEditor.root.innerHTML : '';
-          const useCSV = document.getElementById('useCSVData').checked;
-          return quoteContent ? { content: quoteContent, useCSV } : null;
-
-        case 'csv':
-          const csvFile = document.getElementById('csvFileSelect').value;
-          const displayFormat = document.getElementById('csvDisplayFormat').value;
-          const filterColumn = document.getElementById('csvFilterColumn').value.trim();
-          return csvFile ? { file: csvFile, displayFormat, filterColumn } : null;
-
-        case 'html':
-          const htmlCode = document.getElementById('htmlCode').value.trim();
-          const customCSS = document.getElementById('customCSS').value.trim();
-          return htmlCode ? { htmlCode, customCSS } : null;
-
-        case 'javascript':
-          const jsCode = document.getElementById('jsCode').value.trim();
-          const jsHtmlCode = document.getElementById('jsHtmlCode').value.trim();
-          const targetElement = document.getElementById('targetElement').value.trim();
-          const jsFunction = document.getElementById('jsFunction').value;
-          return jsCode ? { jsCode, jsHtmlCode, targetElement, jsFunction } : null;
-
-        case 'template':
-          const selectedTemplate = document.querySelector('.template-card.selected');
-          if (!selectedTemplate) return null;
-          const templateType = selectedTemplate.dataset.template;
-          const primaryColor = document.getElementById('primaryColor') ? document.getElementById('primaryColor').value : '#6f42c1';
-          const textStyle = document.getElementById('textStyle') ? document.getElementById('textStyle').value : 'modern';
-          const layoutStyle = document.getElementById('layoutStyle') ? document.getElementById('layoutStyle').value : 'standard';
-          const projectName = document.getElementById('projectName') ? document.getElementById('projectName').value.trim() : 'My Project';
-          const generatedHTML = document.getElementById('generatedHTML') ? document.getElementById('generatedHTML').value : '';
-          const generatedCSS = document.getElementById('generatedCSS') ? document.getElementById('generatedCSS').value : '';
-          return { templateType, primaryColor, textStyle, layoutStyle, projectName, generatedHTML, generatedCSS };
-
-        default:
-          return null;
-      }
+    if (type === 'csv') {
+      populateCSVSelect();
     }
+  }, 100);
+}
 
-    function renderTriggers() {
-      const container = document.getElementById('triggersList');
+function populateCSVSelect() {
+  const select = document.getElementById('csvFileSelect');
+  if (!select) return;
 
-      if (triggers.length === 0) {
-        container.innerHTML = `
+  select.innerHTML = '<option value="">Select CSV file...</option>';
+
+  Object.keys(csvData).forEach(filename => {
+    const option = document.createElement('option');
+    option.value = filename;
+    option.textContent = filename;
+    select.appendChild(option);
+  });
+}
+
+function addTrigger() {
+  const triggerText = document.getElementById('triggerInput').value.trim();
+  const category = document.getElementById('categorySelect').value;
+
+  if (!triggerText) {
+    showToast('Please enter a trigger phrase', 'warning');
+    return;
+  }
+
+  if (!currentResponseType) {
+    showToast('Please select a response type', 'warning');
+    return;
+  }
+
+  const responseData = gatherResponseData();
+  if (!responseData) {
+    showToast('Please fill in the response content', 'warning');
+    return;
+  }
+
+  const trigger = {
+    id: Date.now(),
+    text: triggerText,
+    category: category,
+    responseType: currentResponseType,
+    responseData: responseData,
+    created: new Date().toISOString(),
+    usage: 0
+  };
+
+  triggers.push(trigger);
+  saveData();
+  renderTriggers();
+  updateStats();
+  clearForm();
+
+  showToast('Trigger added successfully!', 'success');
+}
+
+function gatherResponseData() {
+  switch (currentResponseType) {
+    case 'text':
+      const text = document.getElementById('responseText').value.trim();
+      return text ? { text } : null;
+
+    case 'url':
+      const url = document.getElementById('responseUrl').value.trim();
+      const linkText = document.getElementById('responseLinkText').value.trim();
+      const newTab = document.getElementById('openInNewTab').checked;
+      return url ? { url, linkText: linkText || url, newTab } : null;
+
+    case 'document':
+      const docUrl = document.getElementById('documentUrl').value.trim();
+      const docTitle = document.getElementById('documentTitle').value.trim();
+      const embed = document.getElementById('embedDocument').checked;
+      return docUrl ? { url: docUrl, title: docTitle || 'Document', embed } : null;
+
+    case 'email':
+      const subject = document.getElementById('emailSubject').value.trim();
+      const recipient = document.getElementById('emailRecipient').value.trim();
+      const content = emailEditor ? emailEditor.root.innerHTML : '';
+      return subject ? { subject, recipient, content } : null;
+
+    case 'quote':
+      const quoteContent = quoteEditor ? quoteEditor.root.innerHTML : '';
+      const useCSV = document.getElementById('useCSVData').checked;
+      return quoteContent ? { content: quoteContent, useCSV } : null;
+
+    case 'csv':
+      const csvFile = document.getElementById('csvFileSelect').value;
+      const displayFormat = document.getElementById('csvDisplayFormat').value;
+      const filterColumn = document.getElementById('csvFilterColumn').value.trim();
+      return csvFile ? { file: csvFile, displayFormat, filterColumn } : null;
+
+    case 'html':
+      const htmlCode = document.getElementById('htmlCode').value.trim();
+      const customCSS = document.getElementById('customCSS').value.trim();
+      return htmlCode ? { htmlCode, customCSS } : null;
+
+    case 'javascript':
+      const jsCode = document.getElementById('jsCode').value.trim();
+      const jsHtmlCode = document.getElementById('jsHtmlCode').value.trim();
+      const targetElement = document.getElementById('targetElement').value.trim();
+      const jsFunction = document.getElementById('jsFunction').value;
+      return jsCode ? { jsCode, jsHtmlCode, targetElement, jsFunction } : null;
+
+    case 'template':
+      const selectedTemplate = document.querySelector('.template-card.selected');
+      if (!selectedTemplate) return null;
+      const templateType = selectedTemplate.dataset.template;
+      const primaryColor = document.getElementById('primaryColor') ? document.getElementById('primaryColor').value : '#6f42c1';
+      const textStyle = document.getElementById('textStyle') ? document.getElementById('textStyle').value : 'modern';
+      const layoutStyle = document.getElementById('layoutStyle') ? document.getElementById('layoutStyle').value : 'standard';
+      const projectName = document.getElementById('projectName') ? document.getElementById('projectName').value.trim() : 'My Project';
+      const generatedHTML = document.getElementById('generatedHTML') ? document.getElementById('generatedHTML').value : '';
+      const generatedCSS = document.getElementById('generatedCSS') ? document.getElementById('generatedCSS').value : '';
+      return { templateType, primaryColor, textStyle, layoutStyle, projectName, generatedHTML, generatedCSS };
+
+    default:
+      return null;
+  }
+}
+
+function renderTriggers() {
+  const container = document.getElementById('triggersList');
+
+  if (triggers.length === 0) {
+    container.innerHTML = `
                     <div class="text-center text-muted py-4">
                         <i class="bi bi-robot" style="font-size: 3rem;"></i>
                         <p>No triggers created yet. Add your first trigger above!</p>
                     </div>
                 `;
-        return;
-      }
+    return;
+  }
 
-      const html = triggers.map(trigger => `
+  const html = triggers.map(trigger => `
                 <div class="trigger-item" data-id="${trigger.id}">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="flex-grow-1">
@@ -653,260 +653,260 @@ function myFunction() {
                 </div>
             `).join('');
 
-      container.innerHTML = html;
-    }
+  container.innerHTML = html;
+}
 
-    function getResponsePreview(trigger) {
-      const data = trigger.responseData;
-      switch (trigger.responseType) {
-        case 'text':
-          return data.text.substring(0, 100) + (data.text.length > 100 ? '...' : '');
-        case 'url':
-          return `Link to: ${data.url}`;
-        case 'document':
-          return `Document: ${data.title}`;
-        case 'email':
-          return `Email: ${data.subject}`;
-        case 'quote':
-          return 'Quote template';
-        case 'csv':
-          return `CSV data from: ${data.file}`;
-        case 'html':
-          return 'HTML code block with Bootstrap styling';
-        case 'javascript':
-          return `JavaScript: ${data.jsFunction || 'Custom function'}`;
-        case 'template':
-          return `${data.templateType} template for ${data.projectName}`;
-        default:
-          return 'Unknown response type';
-      }
-    }
+function getResponsePreview(trigger) {
+  const data = trigger.responseData;
+  switch (trigger.responseType) {
+    case 'text':
+      return data.text.substring(0, 100) + (data.text.length > 100 ? '...' : '');
+    case 'url':
+      return `Link to: ${data.url}`;
+    case 'document':
+      return `Document: ${data.title}`;
+    case 'email':
+      return `Email: ${data.subject}`;
+    case 'quote':
+      return 'Quote template';
+    case 'csv':
+      return `CSV data from: ${data.file}`;
+    case 'html':
+      return 'HTML code block with Bootstrap styling';
+    case 'javascript':
+      return `JavaScript: ${data.jsFunction || 'Custom function'}`;
+    case 'template':
+      return `${data.templateType} template for ${data.projectName}`;
+    default:
+      return 'Unknown response type';
+  }
+}
 
-    function deleteTrigger(id) {
-      if (confirm('Are you sure you want to delete this trigger?')) {
-        triggers = triggers.filter(t => t.id !== id);
-        saveData();
-        renderTriggers();
-        updateStats();
-        showToast('Trigger deleted', 'info');
-      }
-    }
+function deleteTrigger(id) {
+  if (confirm('Are you sure you want to delete this trigger?')) {
+    triggers = triggers.filter(t => t.id !== id);
+    saveData();
+    renderTriggers();
+    updateStats();
+    showToast('Trigger deleted', 'info');
+  }
+}
 
-    function testTrigger(id) {
-      const trigger = triggers.find(t => t.id === id);
-      if (trigger) {
-        simulateResponse(trigger.text);
-      }
-    }
+function testTrigger(id) {
+  const trigger = triggers.find(t => t.id === id);
+  if (trigger) {
+    simulateResponse(trigger.text);
+  }
+}
 
-    function sendPreviewMessage() {
-      const input = document.getElementById('previewInput');
-      const message = input.value.trim();
+function sendPreviewMessage() {
+  const input = document.getElementById('previewInput');
+  const message = input.value.trim();
 
-      if (!message) return;
+  if (!message) return;
 
-      // Add user message
-      addChatMessage(message, 'user');
+  // Add user message
+  addChatMessage(message, 'user');
 
-      // Clear input
-      input.value = '';
+  // Clear input
+  input.value = '';
 
-      // Find matching trigger
-      simulateResponse(message);
-    }
+  // Find matching trigger
+  simulateResponse(message);
+}
 
-    function simulateResponse(userMessage) {
-      const matchedTrigger = findMatchingTrigger(userMessage);
+function simulateResponse(userMessage) {
+  const matchedTrigger = findMatchingTrigger(userMessage);
 
-      if (matchedTrigger) {
-        // Increment usage
-        matchedTrigger.usage++;
-        saveData();
-        updateStats();
+  if (matchedTrigger) {
+    // Increment usage
+    matchedTrigger.usage++;
+    saveData();
+    updateStats();
 
-        // Generate response based on type
-        const response = generateResponse(matchedTrigger);
-        addChatMessage(response, 'bot');
-      } else {
-        addChatMessage("I'm sorry, I don't understand that. Try one of my programmed triggers!", 'bot');
-      }
-    }
+    // Generate response based on type
+    const response = generateResponse(matchedTrigger);
+    addChatMessage(response, 'bot');
+  } else {
+    addChatMessage("I'm sorry, I don't understand that. Try one of my programmed triggers!", 'bot');
+  }
+}
 
-    function findMatchingTrigger(message) {
-      const lowerMessage = message.toLowerCase();
-      return triggers.find(trigger => {
-        const lowerTrigger = trigger.text.toLowerCase();
-        return lowerMessage.includes(lowerTrigger) || lowerTrigger.includes(lowerMessage);
-      });
-    }
+function findMatchingTrigger(message) {
+  const lowerMessage = message.toLowerCase();
+  return triggers.find(trigger => {
+    const lowerTrigger = trigger.text.toLowerCase();
+    return lowerMessage.includes(lowerTrigger) || lowerTrigger.includes(lowerMessage);
+  });
+}
 
-    function generateResponse(trigger) {
-      const data = trigger.responseData;
+function generateResponse(trigger) {
+  const data = trigger.responseData;
 
-      switch (trigger.responseType) {
-        case 'text':
-          return data.text;
+  switch (trigger.responseType) {
+    case 'text':
+      return data.text;
 
-        case 'url':
-          return `<a href="${data.url}" ${data.newTab ? 'target="_blank"' : ''}>${data.linkText}</a>`;
+    case 'url':
+      return `<a href="${data.url}" ${data.newTab ? 'target="_blank"' : ''}>${data.linkText}</a>`;
 
-        case 'document':
-          return `<a href="${data.url}" target="_blank"><i class="bi bi-file-earmark"></i> ${data.title}</a>`;
+    case 'document':
+      return `<a href="${data.url}" target="_blank"><i class="bi bi-file-earmark"></i> ${data.title}</a>`;
 
-        case 'email':
-          const emailLink = `mailto:${data.recipient || ''}?subject=${encodeURIComponent(data.subject)}`;
-          return `<a href="${emailLink}"><i class="bi bi-envelope"></i> Send Email: ${data.subject}</a>`;
+    case 'email':
+      const emailLink = `mailto:${data.recipient || ''}?subject=${encodeURIComponent(data.subject)}`;
+      return `<a href="${emailLink}"><i class="bi bi-envelope"></i> Send Email: ${data.subject}</a>`;
 
-        case 'quote':
-          return `<div class="quote-response">${data.content}</div>`;
+    case 'quote':
+      return `<div class="quote-response">${data.content}</div>`;
 
-        case 'csv':
-          return generateCSVResponse(data);
+    case 'csv':
+      return generateCSVResponse(data);
 
-        case 'html':
-          return generateHTMLResponse(data);
+    case 'html':
+      return generateHTMLResponse(data);
 
-        case 'javascript':
-          return generateJavaScriptResponse(data);
+    case 'javascript':
+      return generateJavaScriptResponse(data);
 
-        case 'template':
-          return generateTemplateResponse(data);
+    case 'template':
+      return generateTemplateResponse(data);
 
-        default:
-          return 'Response type not implemented yet.';
-      }
-    }
+    default:
+      return 'Response type not implemented yet.';
+  }
+}
 
-    function generateCSVResponse(data) {
-      const csvContent = csvData[data.file];
-      if (!csvContent || !csvContent.length) {
-        return 'CSV data not found.';
-      }
+function generateCSVResponse(data) {
+  const csvContent = csvData[data.file];
+  if (!csvContent || !csvContent.length) {
+    return 'CSV data not found.';
+  }
 
-      switch (data.displayFormat) {
-        case 'table':
-          return generateCSVTable(csvContent);
-        case 'list':
-          return generateCSVList(csvContent);
-        case 'cards':
-          return generateCSVCards(csvContent);
-        default:
-          return 'Invalid display format.';
-      }
-    }
+  switch (data.displayFormat) {
+    case 'table':
+      return generateCSVTable(csvContent);
+    case 'list':
+      return generateCSVList(csvContent);
+    case 'cards':
+      return generateCSVCards(csvContent);
+    default:
+      return 'Invalid display format.';
+  }
+}
 
-    function generateCSVTable(data) {
-      if (!data.length) return 'No data available.';
+function generateCSVTable(data) {
+  if (!data.length) return 'No data available.';
 
-      const headers = Object.keys(data[0]);
-      let html = '<table class="table table-sm table-dark">';
-      html += '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
-      html += '<tbody>';
+  const headers = Object.keys(data[0]);
+  let html = '<table class="table table-sm table-dark">';
+  html += '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr></thead>';
+  html += '<tbody>';
 
-      data.slice(0, 5).forEach(row => { // Limit to 5 rows for preview
-        html += '<tr>' + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + '</tr>';
-      });
+  data.slice(0, 5).forEach(row => { // Limit to 5 rows for preview
+    html += '<tr>' + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + '</tr>';
+  });
 
-      html += '</tbody></table>';
-      if (data.length > 5) {
-        html += `<small class="text-muted">Showing 5 of ${data.length} records</small>`;
-      }
+  html += '</tbody></table>';
+  if (data.length > 5) {
+    html += `<small class="text-muted">Showing 5 of ${data.length} records</small>`;
+  }
 
-      return html;
-    }
+  return html;
+}
 
-    function generateCSVList(data) {
-      if (!data.length) return 'No data available.';
+function generateCSVList(data) {
+  if (!data.length) return 'No data available.';
 
-      return data.slice(0, 3).map(row => {
-        const entries = Object.entries(row);
-        return entries.map(([key, value]) => `<strong>${key}:</strong> ${value}`).join('<br>');
-      }).join('<hr>') + (data.length > 3 ? `<br><small class="text-muted">And ${data.length - 3} more...</small>` : '');
-    }
+  return data.slice(0, 3).map(row => {
+    const entries = Object.entries(row);
+    return entries.map(([key, value]) => `<strong>${key}:</strong> ${value}`).join('<br>');
+  }).join('<hr>') + (data.length > 3 ? `<br><small class="text-muted">And ${data.length - 3} more...</small>` : '');
+}
 
-    function generateCSVCards(data) {
-      if (!data.length) return 'No data available.';
+function generateCSVCards(data) {
+  if (!data.length) return 'No data available.';
 
-      return data.slice(0, 2).map(row => {
-        const entries = Object.entries(row);
-        return `<div class="card card-sm mb-2">
+  return data.slice(0, 2).map(row => {
+    const entries = Object.entries(row);
+    return `<div class="card card-sm mb-2">
                     <div class="card-body p-2">
                         ${entries.map(([key, value]) => `<div><small class="text-muted">${key}:</small> ${value}</div>`).join('')}
                     </div>
                 </div>`;
-      }).join('') + (data.length > 2 ? `<small class="text-muted">And ${data.length - 2} more...</small>` : '');
-    }
+  }).join('') + (data.length > 2 ? `<small class="text-muted">And ${data.length - 2} more...</small>` : '');
+}
 
-    function addChatMessage(message, sender) {
-      const chatPreview = document.getElementById('chatPreview');
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `chat-message ${sender}`;
-      messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Bot'}:</strong> ${message}`;
+function addChatMessage(message, sender) {
+  const chatPreview = document.getElementById('chatPreview');
+  const messageDiv = document.createElement('div');
+  messageDiv.className = `chat-message ${sender}`;
+  messageDiv.innerHTML = `<strong>${sender === 'user' ? 'You' : 'Bot'}:</strong> ${message}`;
 
-      chatPreview.appendChild(messageDiv);
-      chatPreview.scrollTop = chatPreview.scrollHeight;
-    }
+  chatPreview.appendChild(messageDiv);
+  chatPreview.scrollTop = chatPreview.scrollHeight;
+}
 
-    function clearChat() {
-      const chatPreview = document.getElementById('chatPreview');
-      chatPreview.innerHTML = `
+function clearChat() {
+  const chatPreview = document.getElementById('chatPreview');
+  chatPreview.innerHTML = `
                 <div class="chat-message bot">
                     <strong>Bot:</strong> Hello! I'm your chatbot. Try typing a trigger phrase below.
                 </div>
             `;
+}
+
+function handleCSVUpload(event) {
+  const files = event.target.files;
+  for (let file of files) {
+    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      parseCSVFile(file);
     }
+  }
+}
 
-    function handleCSVUpload(event) {
-      const files = event.target.files;
-      for (let file of files) {
-        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-          parseCSVFile(file);
-        }
-      }
+function parseCSVFile(file) {
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    const csv = e.target.result;
+    const parsed = parseCSV(csv);
+    csvData[file.name] = parsed;
+    saveData();
+    renderCSVList();
+    updateStats();
+    showToast(`CSV file "${file.name}" uploaded successfully!`, 'success');
+  };
+  reader.readAsText(file);
+}
+
+function parseCSV(csv) {
+  const lines = csv.split('\n');
+  const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+  const data = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    if (lines[i].trim()) {
+      const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
+      const row = {};
+      headers.forEach((header, index) => {
+        row[header] = values[index] || '';
+      });
+      data.push(row);
     }
+  }
 
-    function parseCSVFile(file) {
-      const reader = new FileReader();
-      reader.onload = function (e) {
-        const csv = e.target.result;
-        const parsed = parseCSV(csv);
-        csvData[file.name] = parsed;
-        saveData();
-        renderCSVList();
-        updateStats();
-        showToast(`CSV file "${file.name}" uploaded successfully!`, 'success');
-      };
-      reader.readAsText(file);
-    }
+  return data;
+}
 
-    function parseCSV(csv) {
-      const lines = csv.split('\n');
-      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      const data = [];
+function renderCSVList() {
+  const container = document.getElementById('csvList');
 
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim().replace(/"/g, ''));
-          const row = {};
-          headers.forEach((header, index) => {
-            row[header] = values[index] || '';
-          });
-          data.push(row);
-        }
-      }
+  if (Object.keys(csvData).length === 0) {
+    container.innerHTML = '<p class="text-muted text-center">No CSV files uploaded yet.</p>';
+    return;
+  }
 
-      return data;
-    }
-
-    function renderCSVList() {
-      const container = document.getElementById('csvList');
-
-      if (Object.keys(csvData).length === 0) {
-        container.innerHTML = '<p class="text-muted text-center">No CSV files uploaded yet.</p>';
-        return;
-      }
-
-      const html = Object.entries(csvData).map(([filename, data]) => `
+  const html = Object.entries(csvData).map(([filename, data]) => `
                 <div class="csv-item mb-2">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -925,232 +925,232 @@ function myFunction() {
                 </div>
             `).join('');
 
-      container.innerHTML = html;
+  container.innerHTML = html;
+}
+
+function previewCSV(filename) {
+  const data = csvData[filename];
+  if (!data || !data.length) return;
+
+  let preview = `<strong>${filename}</strong> (${data.length} records)\n\n`;
+  preview += generateCSVTable(data.slice(0, 3));
+
+  showModal('CSV Preview', preview);
+}
+
+function deleteCSV(filename) {
+  if (confirm(`Delete CSV file "${filename}"?`)) {
+    delete csvData[filename];
+    saveData();
+    renderCSVList();
+    updateStats();
+    showToast('CSV file deleted', 'info');
+  }
+}
+
+function handleDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+  e.currentTarget.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+
+  const files = e.dataTransfer.files;
+  for (let file of files) {
+    if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
+      parseCSVFile(file);
     }
+  }
+}
 
-    function previewCSV(filename) {
-      const data = csvData[filename];
-      if (!data || !data.length) return;
+function filterTriggers() {
+  const search = document.getElementById('searchTriggers').value.toLowerCase();
+  const triggerItems = document.querySelectorAll('.trigger-item');
 
-      let preview = `<strong>${filename}</strong> (${data.length} records)\n\n`;
-      preview += generateCSVTable(data.slice(0, 3));
+  triggerItems.forEach(item => {
+    const text = item.textContent.toLowerCase();
+    item.style.display = text.includes(search) ? 'block' : 'none';
+  });
+}
 
-      showModal('CSV Preview', preview);
-    }
+function clearForm() {
+  document.getElementById('triggerInput').value = '';
+  document.getElementById('categorySelect').value = '';
+  document.querySelectorAll('.response-type-btn').forEach(btn => {
+    btn.classList.remove('active');
+  });
+  document.getElementById('responseContent').style.display = 'none';
+  currentResponseType = '';
 
-    function deleteCSV(filename) {
-      if (confirm(`Delete CSV file "${filename}"?`)) {
-        delete csvData[filename];
-        saveData();
-        renderCSVList();
-        updateStats();
-        showToast('CSV file deleted', 'info');
-      }
-    }
+  // Reset editors
+  if (emailEditor) {
+    emailEditor.setContents([]);
+  }
+  if (quoteEditor) {
+    quoteEditor.setContents([]);
+  }
+}
 
-    function handleDragOver(e) {
-      e.preventDefault();
-      e.currentTarget.classList.add('drag-over');
-    }
+function updateStats() {
+  document.getElementById('triggerCount').textContent = triggers.length;
+  document.getElementById('responseCount').textContent = triggers.length;
+  document.getElementById('csvCount').textContent = Object.keys(csvData).length;
 
-    function handleDragLeave(e) {
-      e.currentTarget.classList.remove('drag-over');
-    }
+  const templateCount = triggers.filter(t => t.responseType === 'email' || t.responseType === 'quote').length;
+  document.getElementById('templateCount').textContent = templateCount;
+}
 
-    function handleDrop(e) {
-      e.preventDefault();
-      e.currentTarget.classList.remove('drag-over');
+function saveData() {
+  localStorage.setItem('chatbotTriggers', JSON.stringify(triggers));
+  localStorage.setItem('chatbotCSV', JSON.stringify(csvData));
+}
 
-      const files = e.dataTransfer.files;
-      for (let file of files) {
-        if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
-          parseCSVFile(file);
-        }
-      }
-    }
+function loadData() {
+  renderTriggers();
+  renderCSVList();
+}
 
-    function filterTriggers() {
-      const search = document.getElementById('searchTriggers').value.toLowerCase();
-      const triggerItems = document.querySelectorAll('.trigger-item');
+function exportData() {
+  const exportData = {
+    triggers: triggers,
+    csvData: csvData,
+    exportDate: new Date().toISOString(),
+    version: '1.0'
+  };
 
-      triggerItems.forEach(item => {
-        const text = item.textContent.toLowerCase();
-        item.style.display = text.includes(search) ? 'block' : 'none';
-      });
-    }
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `chatbot-backup-${new Date().toISOString().split('T')[0]}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
 
-    function clearForm() {
-      document.getElementById('triggerInput').value = '';
-      document.getElementById('categorySelect').value = '';
-      document.querySelectorAll('.response-type-btn').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      document.getElementById('responseContent').style.display = 'none';
-      currentResponseType = '';
+  showToast('Data exported successfully!', 'success');
+}
 
-      // Reset editors
-      if (emailEditor) {
-        emailEditor.setContents([]);
-      }
-      if (quoteEditor) {
-        quoteEditor.setContents([]);
-      }
-    }
-
-    function updateStats() {
-      document.getElementById('triggerCount').textContent = triggers.length;
-      document.getElementById('responseCount').textContent = triggers.length;
-      document.getElementById('csvCount').textContent = Object.keys(csvData).length;
-
-      const templateCount = triggers.filter(t => t.responseType === 'email' || t.responseType === 'quote').length;
-      document.getElementById('templateCount').textContent = templateCount;
-    }
-
-    function saveData() {
-      localStorage.setItem('chatbotTriggers', JSON.stringify(triggers));
-      localStorage.setItem('chatbotCSV', JSON.stringify(csvData));
-    }
-
-    function loadData() {
-      renderTriggers();
-      renderCSVList();
-    }
-
-    function exportData() {
-      const exportData = {
-        triggers: triggers,
-        csvData: csvData,
-        exportDate: new Date().toISOString(),
-        version: '1.0'
-      };
-
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `chatbot-backup-${new Date().toISOString().split('T')[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-
-      showToast('Data exported successfully!', 'success');
-    }
-
-    function importData() {
-      const input = document.createElement('input');
-      input.type = 'file';
-      input.accept = '.json';
-      input.onchange = function (e) {
-        const file = e.target.files[0];
-        if (file) {
-          const reader = new FileReader();
-          reader.onload = function (e) {
-            try {
-              const data = JSON.parse(e.target.result);
-              if (data.triggers && data.csvData) {
-                triggers = data.triggers;
-                csvData = data.csvData;
-                saveData();
-                loadData();
-                updateStats();
-                showToast('Data imported successfully!', 'success');
-              } else {
-                showToast('Invalid backup file format', 'danger');
-              }
-            } catch (error) {
-              showToast('Error parsing backup file', 'danger');
-            }
-          };
-          reader.readAsText(file);
+function importData() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.onchange = function (e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const data = JSON.parse(e.target.result);
+          if (data.triggers && data.csvData) {
+            triggers = data.triggers;
+            csvData = data.csvData;
+            saveData();
+            loadData();
+            updateStats();
+            showToast('Data imported successfully!', 'success');
+          } else {
+            showToast('Invalid backup file format', 'danger');
+          }
+        } catch (error) {
+          showToast('Error parsing backup file', 'danger');
         }
       };
-      input.click();
+      reader.readAsText(file);
     }
+  };
+  input.click();
+}
 
-    function clearAllData() {
-      if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-        triggers = [];
-        csvData = {};
-        saveData();
-        loadData();
-        updateStats();
-        clearChat();
-        showToast('All data cleared', 'warning');
-      }
+function clearAllData() {
+  if (confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
+    triggers = [];
+    csvData = {};
+    saveData();
+    loadData();
+    updateStats();
+    clearChat();
+    showToast('All data cleared', 'warning');
+  }
+}
+
+function addSampleData() {
+  const sampleTriggers = [
+    {
+      id: Date.now() + 1,
+      text: 'hello',
+      category: 'greeting',
+      responseType: 'text',
+      responseData: { text: 'Hello! How can I help you today?' },
+      created: new Date().toISOString(),
+      usage: 0
+    },
+    {
+      id: Date.now() + 2,
+      text: 'contact',
+      category: 'contact',
+      responseType: 'text',
+      responseData: { text: 'You can reach us at contact@company.com or call (555) 123-4567' },
+      created: new Date().toISOString(),
+      usage: 0
+    },
+    {
+      id: Date.now() + 3,
+      text: 'website',
+      category: 'info',
+      responseType: 'url',
+      responseData: { url: 'https://example.com', linkText: 'Visit our website', newTab: true },
+      created: new Date().toISOString(),
+      usage: 0
     }
+  ];
 
-    function addSampleData() {
-      const sampleTriggers = [
-        {
-          id: Date.now() + 1,
-          text: 'hello',
-          category: 'greeting',
-          responseType: 'text',
-          responseData: { text: 'Hello! How can I help you today?' },
-          created: new Date().toISOString(),
-          usage: 0
-        },
-        {
-          id: Date.now() + 2,
-          text: 'contact',
-          category: 'contact',
-          responseType: 'text',
-          responseData: { text: 'You can reach us at contact@company.com or call (555) 123-4567' },
-          created: new Date().toISOString(),
-          usage: 0
-        },
-        {
-          id: Date.now() + 3,
-          text: 'website',
-          category: 'info',
-          responseType: 'url',
-          responseData: { url: 'https://example.com', linkText: 'Visit our website', newTab: true },
-          created: new Date().toISOString(),
-          usage: 0
-        }
-      ];
+  triggers.push(...sampleTriggers);
+  saveData();
+  renderTriggers();
+  updateStats();
+  showToast('Sample data added!', 'success');
+}
 
-      triggers.push(...sampleTriggers);
-      saveData();
-      renderTriggers();
-      updateStats();
-      showToast('Sample data added!', 'success');
+function validateBot() {
+  const issues = [];
+
+  if (triggers.length === 0) {
+    issues.push('No triggers defined');
+  }
+
+  const duplicateTriggers = triggers.filter((t1, i) =>
+    triggers.findIndex(t2 => t2.text.toLowerCase() === t1.text.toLowerCase()) !== i
+  );
+
+  if (duplicateTriggers.length > 0) {
+    issues.push(`Duplicate triggers found: ${duplicateTriggers.map(t => t.text).join(', ')}`);
+  }
+
+  const csvTriggers = triggers.filter(t => t.responseType === 'csv');
+  csvTriggers.forEach(trigger => {
+    if (!csvData[trigger.responseData.file]) {
+      issues.push(`CSV file not found: ${trigger.responseData.file}`);
     }
+  });
 
-    function validateBot() {
-      const issues = [];
+  if (issues.length === 0) {
+    showToast('✅ Bot validation passed!', 'success');
+  } else {
+    showModal('Validation Issues', issues.map(issue => `• ${issue}`).join('<br>'));
+  }
+}
 
-      if (triggers.length === 0) {
-        issues.push('No triggers defined');
-      }
+function showStats() {
+  const totalUsage = triggers.reduce((sum, t) => sum + t.usage, 0);
+  const avgUsage = triggers.length > 0 ? (totalUsage / triggers.length).toFixed(1) : 0;
+  const mostUsed = triggers.reduce((max, t) => t.usage > max.usage ? t : max, { usage: 0, text: 'None' });
 
-      const duplicateTriggers = triggers.filter((t1, i) =>
-        triggers.findIndex(t2 => t2.text.toLowerCase() === t1.text.toLowerCase()) !== i
-      );
-
-      if (duplicateTriggers.length > 0) {
-        issues.push(`Duplicate triggers found: ${duplicateTriggers.map(t => t.text).join(', ')}`);
-      }
-
-      const csvTriggers = triggers.filter(t => t.responseType === 'csv');
-      csvTriggers.forEach(trigger => {
-        if (!csvData[trigger.responseData.file]) {
-          issues.push(`CSV file not found: ${trigger.responseData.file}`);
-        }
-      });
-
-      if (issues.length === 0) {
-        showToast('✅ Bot validation passed!', 'success');
-      } else {
-        showModal('Validation Issues', issues.map(issue => `• ${issue}`).join('<br>'));
-      }
-    }
-
-    function showStats() {
-      const totalUsage = triggers.reduce((sum, t) => sum + t.usage, 0);
-      const avgUsage = triggers.length > 0 ? (totalUsage / triggers.length).toFixed(1) : 0;
-      const mostUsed = triggers.reduce((max, t) => t.usage > max.usage ? t : max, { usage: 0, text: 'None' });
-
-      const stats = `
+  const stats = `
                 <strong>Bot Statistics:</strong><br><br>
                 • Total Triggers: ${triggers.length}<br>
                 • Total Usage: ${totalUsage}<br>
@@ -1160,110 +1160,110 @@ function myFunction() {
                 • Categories: ${[...new Set(triggers.map(t => t.category).filter(c => c))].length}
             `;
 
-      showModal('Statistics', stats);
+  showModal('Statistics', stats);
+}
+
+function optimizeBot() {
+  let optimizations = [];
+
+  // Find unused triggers
+  const unused = triggers.filter(t => t.usage === 0);
+  if (unused.length > 0) {
+    optimizations.push(`${unused.length} triggers have never been used`);
+  }
+
+  // Find similar triggers
+  const similar = [];
+  for (let i = 0; i < triggers.length; i++) {
+    for (let j = i + 1; j < triggers.length; j++) {
+      const similarity = calculateSimilarity(triggers[i].text, triggers[j].text);
+      if (similarity > 0.7) {
+        similar.push(`"${triggers[i].text}" and "${triggers[j].text}" are very similar`);
+      }
     }
+  }
 
-    function optimizeBot() {
-      let optimizations = [];
+  if (similar.length > 0) {
+    optimizations.push(...similar);
+  }
 
-      // Find unused triggers
-      const unused = triggers.filter(t => t.usage === 0);
-      if (unused.length > 0) {
-        optimizations.push(`${unused.length} triggers have never been used`);
-      }
+  if (optimizations.length === 0) {
+    showToast('🚀 Bot is already optimized!', 'success');
+  } else {
+    showModal('Optimization Suggestions', optimizations.map(opt => `• ${opt}`).join('<br>'));
+  }
+}
 
-      // Find similar triggers
-      const similar = [];
-      for (let i = 0; i < triggers.length; i++) {
-        for (let j = i + 1; j < triggers.length; j++) {
-          const similarity = calculateSimilarity(triggers[i].text, triggers[j].text);
-          if (similarity > 0.7) {
-            similar.push(`"${triggers[i].text}" and "${triggers[j].text}" are very similar`);
-          }
-        }
-      }
+function calculateSimilarity(str1, str2) {
+  const longer = str1.length > str2.length ? str1 : str2;
+  const shorter = str1.length > str2.length ? str2 : str1;
 
-      if (similar.length > 0) {
-        optimizations.push(...similar);
-      }
+  if (longer.length === 0) return 1.0;
 
-      if (optimizations.length === 0) {
-        showToast('🚀 Bot is already optimized!', 'success');
+  return (longer.length - editDistance(longer, shorter)) / longer.length;
+}
+
+function editDistance(str1, str2) {
+  const matrix = [];
+
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
       } else {
-        showModal('Optimization Suggestions', optimizations.map(opt => `• ${opt}`).join('<br>'));
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          matrix[i][j - 1] + 1,
+          matrix[i - 1][j] + 1
+        );
       }
     }
+  }
 
-    function calculateSimilarity(str1, str2) {
-      const longer = str1.length > str2.length ? str1 : str2;
-      const shorter = str1.length > str2.length ? str2 : str1;
+  return matrix[str2.length][str1.length];
+}
 
-      if (longer.length === 0) return 1.0;
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-      return (longer.length - editDistance(longer, shorter)) / longer.length;
-    }
-
-    function editDistance(str1, str2) {
-      const matrix = [];
-
-      for (let i = 0; i <= str2.length; i++) {
-        matrix[i] = [i];
-      }
-
-      for (let j = 0; j <= str1.length; j++) {
-        matrix[0][j] = j;
-      }
-
-      for (let i = 1; i <= str2.length; i++) {
-        for (let j = 1; j <= str1.length; j++) {
-          if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
-            matrix[i][j] = matrix[i - 1][j - 1];
-          } else {
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j - 1] + 1,
-              matrix[i][j - 1] + 1,
-              matrix[i - 1][j] + 1
-            );
-          }
-        }
-      }
-
-      return matrix[str2.length][str1.length];
-    }
-
-    function scrollToTop() {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function showToast(message, type = 'info') {
-      const toastContainer = document.querySelector('.toast-container');
-      const toast = document.createElement('div');
-      toast.className = `toast align-items-center text-bg-${type} border-0`;
-      toast.setAttribute('role', 'alert');
-      toast.innerHTML = `
+function showToast(message, type = 'info') {
+  const toastContainer = document.querySelector('.toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast align-items-center text-bg-${type} border-0`;
+  toast.setAttribute('role', 'alert');
+  toast.innerHTML = `
                 <div class="d-flex">
                     <div class="toast-body">${message}</div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
                 </div>
             `;
 
-      toastContainer.appendChild(toast);
-      const bsToast = new bootstrap.Toast(toast);
-      bsToast.show();
+  toastContainer.appendChild(toast);
+  const bsToast = new bootstrap.Toast(toast);
+  bsToast.show();
 
-      setTimeout(() => {
-        toast.remove();
-      }, 5000);
-    }
+  setTimeout(() => {
+    toast.remove();
+  }, 5000);
+}
 
-    function showModal(title, content) {
-      // Create modal if it doesn't exist
-      let modal = document.getElementById('dynamicModal');
-      if (!modal) {
-        modal = document.createElement('div');
-        modal.id = 'dynamicModal';
-        modal.className = 'modal fade';
-        modal.innerHTML = `
+function showModal(title, content) {
+  // Create modal if it doesn't exist
+  let modal = document.getElementById('dynamicModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'dynamicModal';
+    modal.className = 'modal fade';
+    modal.innerHTML = `
                     <div class="modal-dialog">
                         <div class="modal-content bg-dark">
                             <div class="modal-header">
@@ -1274,200 +1274,200 @@ function myFunction() {
                         </div>
                     </div>
                 `;
-        document.body.appendChild(modal);
-      }
+    document.body.appendChild(modal);
+  }
 
-      modal.querySelector('.modal-title').textContent = title;
-      modal.querySelector('.modal-body').innerHTML = content;
+  modal.querySelector('.modal-title').textContent = title;
+  modal.querySelector('.modal-body').innerHTML = content;
 
-      const bsModal = new bootstrap.Modal(modal);
-      bsModal.show();
-    }
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+}
 
-    // ========================================
-    // NEW CODE GENERATION FUNCTIONS
-    // ========================================
+// ========================================
+// NEW CODE GENERATION FUNCTIONS
+// ========================================
 
-    function generateHTMLResponse(data) {
-      return '<div class="code-response">' +
-        '<div class="d-flex justify-content-between align-items-center mb-3">' +
-        '<h6><i class="bi bi-code-slash"></i> HTML Code Block</h6>' +
-        '<button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard(\'' + btoa(data.htmlCode) + '\')">' +
-        '<i class="bi bi-clipboard"></i> Copy' +
-        '</button>' +
-        '</div>' +
-        '<div class="live-preview-container">' +
-        '<div class="preview-toolbar">' +
-        '<span>Live Preview</span>' +
-        '<button class="btn btn-sm btn-primary" onclick="showCodeModal(\'HTML Code\', \'' + btoa(data.htmlCode) + '\', \'' + btoa(data.customCSS || '') + '\')">' +
-        '<i class="bi bi-eye"></i> View Full Code' +
-        '</button>' +
-        '</div>' +
-        '<div style="background: white; padding: 15px; border-radius: 0 0 8px 8px;">' +
-        data.htmlCode +
-        (data.customCSS ? '<style>' + data.customCSS + '</style>' : '') +
-        '</div>' +
-        '</div>' +
-        '<div class="integration-steps mt-3">' +
-        '<small><strong>Integration:</strong> Copy HTML code → Paste in your website → Ensure Bootstrap 5 is loaded</small>' +
-        '</div>' +
-        '</div>';
-    }
+function generateHTMLResponse(data) {
+  return '<div class="code-response">' +
+    '<div class="d-flex justify-content-between align-items-center mb-3">' +
+    '<h6><i class="bi bi-code-slash"></i> HTML Code Block</h6>' +
+    '<button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard(\'' + btoa(data.htmlCode) + '\')">' +
+    '<i class="bi bi-clipboard"></i> Copy' +
+    '</button>' +
+    '</div>' +
+    '<div class="live-preview-container">' +
+    '<div class="preview-toolbar">' +
+    '<span>Live Preview</span>' +
+    '<button class="btn btn-sm btn-primary" onclick="showCodeModal(\'HTML Code\', \'' + btoa(data.htmlCode) + '\', \'' + btoa(data.customCSS || '') + '\')">' +
+    '<i class="bi bi-eye"></i> View Full Code' +
+    '</button>' +
+    '</div>' +
+    '<div style="background: white; padding: 15px; border-radius: 0 0 8px 8px;">' +
+    data.htmlCode +
+    (data.customCSS ? '<style>' + data.customCSS + '</style>' : '') +
+    '</div>' +
+    '</div>' +
+    '<div class="integration-steps mt-3">' +
+    '<small><strong>Integration:</strong> Copy HTML code → Paste in your website → Ensure Bootstrap 5 is loaded</small>' +
+    '</div>' +
+    '</div>';
+}
 
-    function generateJavaScriptResponse(data) {
-      return '<div class="code-response">' +
-        '<div class="d-flex justify-content-between align-items-center mb-3">' +
-        '<h6><i class="bi bi-braces"></i> JavaScript Function</h6>' +
-        '<button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard(\'' + btoa(data.jsCode) + '\')">' +
-        '<i class="bi bi-clipboard"></i> Copy JS' +
-        '</button>' +
-        '</div>' +
-        '<div class="feature-highlight">' +
-        '<strong>Function Type:</strong> ' + data.jsFunction + '<br>' +
-        (data.targetElement ? '<strong>Target Element:</strong> #' + data.targetElement + '<br>' : '') +
-        '<button class="btn btn-sm btn-success mt-2" onclick="runJavaScriptCode(\'' + btoa(data.jsCode) + '\', \'' + btoa(data.jsHtmlCode || '') + '\')">' +
-        '<i class="bi bi-play"></i> Test Function' +
-        '</button>' +
-        '</div>' +
-        '<div class="code-suggestion">' +
-        data.jsCode.split('\n').slice(0, 3).join('\n') + (data.jsCode.split('\n').length > 3 ? '\n...' : '') +
-        '</div>' +
-        '<div class="integration-steps">' +
-        '<small><strong>Setup:</strong> 1) Add HTML structure 2) Include JS before &lt;/body&gt; 3) Test in console</small>' +
-        '</div>' +
-        '</div>';
-    }
+function generateJavaScriptResponse(data) {
+  return '<div class="code-response">' +
+    '<div class="d-flex justify-content-between align-items-center mb-3">' +
+    '<h6><i class="bi bi-braces"></i> JavaScript Function</h6>' +
+    '<button class="btn btn-sm btn-outline-primary" onclick="copyToClipboard(\'' + btoa(data.jsCode) + '\')">' +
+    '<i class="bi bi-clipboard"></i> Copy JS' +
+    '</button>' +
+    '</div>' +
+    '<div class="feature-highlight">' +
+    '<strong>Function Type:</strong> ' + data.jsFunction + '<br>' +
+    (data.targetElement ? '<strong>Target Element:</strong> #' + data.targetElement + '<br>' : '') +
+    '<button class="btn btn-sm btn-success mt-2" onclick="runJavaScriptCode(\'' + btoa(data.jsCode) + '\', \'' + btoa(data.jsHtmlCode || '') + '\')">' +
+    '<i class="bi bi-play"></i> Test Function' +
+    '</button>' +
+    '</div>' +
+    '<div class="code-suggestion">' +
+    data.jsCode.split('\n').slice(0, 3).join('\n') + (data.jsCode.split('\n').length > 3 ? '\n...' : '') +
+    '</div>' +
+    '<div class="integration-steps">' +
+    '<small><strong>Setup:</strong> 1) Add HTML structure 2) Include JS before &lt;/body&gt; 3) Test in console</small>' +
+    '</div>' +
+    '</div>';
+}
 
-    function generateTemplateResponse(data) {
-      return '<div class="code-response">' +
-        '<div class="d-flex justify-content-between align-items-center mb-3">' +
-        '<h6><i class="bi bi-palette"></i> ' + data.templateType.charAt(0).toUpperCase() + data.templateType.slice(1) + ' Template</h6>' +
-        '<div>' +
-        '<button class="btn btn-sm btn-outline-primary me-2" onclick="downloadTemplate(\'' + btoa(data.generatedHTML) + '\', \'' + btoa(data.generatedCSS) + '\', \'' + data.projectName + '\')">' +
-        '<i class="bi bi-download"></i> Download' +
-        '</button>' +
-        '<button class="btn btn-sm btn-primary" onclick="previewTemplate(\'' + btoa(data.generatedHTML) + '\', \'' + btoa(data.generatedCSS) + '\')">' +
-        '<i class="bi bi-eye"></i> Preview' +
-        '</button>' +
-        '</div>' +
-        '</div>' +
-        '<div class="live-preview-container">' +
-        '<div class="preview-toolbar">' +
-        '<span>Template Preview - ' + data.projectName + '</span>' +
-        '<span class="badge bg-secondary">' + data.templateType + '</span>' +
-        '</div>' +
-        '<div style="background: white; min-height: 200px; overflow: hidden;">' +
-        '<iframe srcdoc="' + data.generatedHTML.replace(/"/g, '&quot;') + '" style="width: 100%; height: 200px; border: none;"></iframe>' +
-        '</div>' +
-        '</div>' +
-        '<div class="integration-steps mt-3">' +
-        '<small><strong>Deployment:</strong> Download files → Upload to hosting → Customize content → Test responsive design</small>' +
-        '</div>' +
-        '</div>';
-    }
+function generateTemplateResponse(data) {
+  return '<div class="code-response">' +
+    '<div class="d-flex justify-content-between align-items-center mb-3">' +
+    '<h6><i class="bi bi-palette"></i> ' + data.templateType.charAt(0).toUpperCase() + data.templateType.slice(1) + ' Template</h6>' +
+    '<div>' +
+    '<button class="btn btn-sm btn-outline-primary me-2" onclick="downloadTemplate(\'' + btoa(data.generatedHTML) + '\', \'' + btoa(data.generatedCSS) + '\', \'' + data.projectName + '\')">' +
+    '<i class="bi bi-download"></i> Download' +
+    '</button>' +
+    '<button class="btn btn-sm btn-primary" onclick="previewTemplate(\'' + btoa(data.generatedHTML) + '\', \'' + btoa(data.generatedCSS) + '\')">' +
+    '<i class="bi bi-eye"></i> Preview' +
+    '</button>' +
+    '</div>' +
+    '</div>' +
+    '<div class="live-preview-container">' +
+    '<div class="preview-toolbar">' +
+    '<span>Template Preview - ' + data.projectName + '</span>' +
+    '<span class="badge bg-secondary">' + data.templateType + '</span>' +
+    '</div>' +
+    '<div style="background: white; min-height: 200px; overflow: hidden;">' +
+    '<iframe srcdoc="' + data.generatedHTML.replace(/"/g, '&quot;') + '" style="width: 100%; height: 200px; border: none;"></iframe>' +
+    '</div>' +
+    '</div>' +
+    '<div class="integration-steps mt-3">' +
+    '<small><strong>Deployment:</strong> Download files → Upload to hosting → Customize content → Test responsive design</small>' +
+    '</div>' +
+    '</div>';
+}
 
-    // Code tab switching
-    function switchCodeTab(tabName) {
-      // Hide all tab contents
-      document.querySelectorAll('.code-tab-content').forEach(tab => {
-        tab.style.display = 'none';
+// Code tab switching
+function switchCodeTab(tabName) {
+  // Hide all tab contents
+  document.querySelectorAll('.code-tab-content').forEach(tab => {
+    tab.style.display = 'none';
+  });
+
+  // Remove active class from all tabs
+  document.querySelectorAll('.code-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+
+  // Show selected tab content
+  const targetTab = document.getElementById(tabName + 'CodeTab') ||
+    document.getElementById(tabName + 'Tab') ||
+    document.getElementById(tabName.replace('-', '') + 'Tab');
+
+  if (targetTab) {
+    targetTab.style.display = 'block';
+  }
+
+  // Add active class to clicked tab
+  // Use the event object passed as an argument
+  if (typeof event !== 'undefined' && event.target) {
+    event.target.classList.add('active');
+  }
+
+  // Update preview if preview tab is selected
+  if (tabName === 'preview' || tabName === 'template-preview') {
+    updateCodePreview();
+  }
+}
+
+// Update live preview for HTML/CSS
+function updateCodePreview() {
+  const htmlCode = document.getElementById('htmlCode');
+  const customCSS = document.getElementById('customCSS');
+  const preview = document.getElementById('codePreview');
+
+  if (!htmlCode || !preview) return;
+  const htmlContent = htmlCode.value.trim();
+  const cssContent = customCSS ? customCSS.value.trim() : '';
+  // Copy to clipboard function
+  function copyToClipboard(content) {
+    const text = atob(content);
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Code copied to clipboard!', 'success');
+      }).catch(() => {
+        showToast('Failed to copy code to clipboard.', 'danger');
       });
-
-      // Remove active class from all tabs
-      document.querySelectorAll('.code-tab').forEach(tab => {
-        tab.classList.remove('active');
-      });
-
-      // Show selected tab content
-      const targetTab = document.getElementById(tabName + 'CodeTab') ||
-        document.getElementById(tabName + 'Tab') ||
-        document.getElementById(tabName.replace('-', '') + 'Tab');
-
-      if (targetTab) {
-        targetTab.style.display = 'block';
+    } else {
+      // fallback for insecure context or older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = text;
+      document.body.appendChild(textArea);
+      textArea.select();
+      try {
+        document.execCommand('copy');
+        showToast('Code copied to clipboard!', 'success');
+      } catch (err) {
+        showToast('Failed to copy code to clipboard.', 'danger');
       }
-
-      // Add active class to clicked tab
-      // Use the event object passed as an argument
-      if (typeof event !== 'undefined' && event.target) {
-        event.target.classList.add('active');
-      }
-
-      // Update preview if preview tab is selected
-      if (tabName === 'preview' || tabName === 'template-preview') {
-        updateCodePreview();
-      }
-    }
-
-    // Update live preview for HTML/CSS
-    function updateCodePreview() {
-      const htmlCode = document.getElementById('htmlCode');
-      const customCSS = document.getElementById('customCSS');
-      const preview = document.getElementById('codePreview');
-
-      if (!htmlCode || !preview) return;
-      const htmlContent = htmlCode.value.trim();
-      const cssContent = customCSS ? customCSS.value.trim() : '';
-    // Copy to clipboard function
-    function copyToClipboard(content) {
-      const text = atob(content);
-      if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(text).then(() => {
-          showToast('Code copied to clipboard!', 'success');
-        }).catch(() => {
-          showToast('Failed to copy code to clipboard.', 'danger');
-        });
-      } else {
-        // fallback for insecure context or older browsers
-        const textArea = document.createElement('textarea');
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-        try {
-          document.execCommand('copy');
-          showToast('Code copied to clipboard!', 'success');
-        } catch (err) {
-          showToast('Failed to copy code to clipboard.', 'danger');
-        }
-        document.body.removeChild(textArea);
-      }
-    }
       document.body.removeChild(textArea);
-      showToast('Code copied to clipboard!', 'success');
     }
-    // Run JavaScript code in the preview
-    function runJavaScriptCode(jsCode, jsHtmlCode) {
-      const code = atob(jsCode);
-      const html = atob(jsHtmlCode || '');
-      const preview = document.getElementById('codePreview');
-      preview.innerHTML = html;
-      const script = document.createElement('script');
-      script.textContent = code;
-      preview.appendChild(script);
-      showToast('JavaScript code executed!', 'success');
-    }
-    // Show code modal for HTML/CSS
-    function showCodeModal(title, htmlCode, cssCode) {
-      const modal = document.getElementById('dynamicModal');
-      modal.querySelector('.modal-title').textContent = title;
-      modal.querySelector('.modal-body').innerHTML = `
+  }
+  document.body.removeChild(textArea);
+  showToast('Code copied to clipboard!', 'success');
+}
+// Run JavaScript code in the preview
+function runJavaScriptCode(jsCode, jsHtmlCode) {
+  const code = atob(jsCode);
+  const html = atob(jsHtmlCode || '');
+  const preview = document.getElementById('codePreview');
+  preview.innerHTML = html;
+  const script = document.createElement('script');
+  script.textContent = code;
+  preview.appendChild(script);
+  showToast('JavaScript code executed!', 'success');
+}
+// Show code modal for HTML/CSS
+function showCodeModal(title, htmlCode, cssCode) {
+  const modal = document.getElementById('dynamicModal');
+  modal.querySelector('.modal-title').textContent = title;
+  modal.querySelector('.modal-body').innerHTML = `
                 <pre class="code-block">${atob(htmlCode)}</pre>
                 ${cssCode ? `<pre class="code-block">${atob(cssCode)}</pre>` : ''}
             `;
-      const bsModal = new bootstrap.Modal(modal);
-      bsModal.show();
-    }
-    // Download template files
-    function downloadTemplate(htmlCode, cssCode, projectName) {
-      const htmlContent = atob(htmlCode);
-      const cssContent = atob(cssCode || '');
-    // Preview template in a new tab
-    function previewTemplate(htmlCode, cssCode) {
-      const htmlContent = atob(htmlCode);
-      const cssContent = atob(cssCode || '');
-      const previewWindow = window.open('', '_blank');
-      if (previewWindow) {
-        previewWindow.document.body.innerHTML = `
+  const bsModal = new bootstrap.Modal(modal);
+  bsModal.show();
+}
+// Download template files
+function downloadTemplate(htmlCode, cssCode, projectName) {
+  const htmlContent = atob(htmlCode);
+  const cssContent = atob(cssCode || '');
+  // Preview template in a new tab
+  function previewTemplate(htmlCode, cssCode) {
+    const htmlContent = atob(htmlCode);
+    const cssContent = atob(cssCode || '');
+    const previewWindow = window.open('', '_blank');
+    if (previewWindow) {
+      previewWindow.document.body.innerHTML = `
           <!DOCTYPE html>
           <html lang="en">
           <head>
@@ -1482,12 +1482,12 @@ function myFunction() {
           </body>
           </html>
         `;
-        showToast('Template preview opened in new tab!', 'success');
-      } else {
-        showToast('Failed to open preview window.', 'danger');
-      }
+      showToast('Template preview opened in new tab!', 'success');
+    } else {
+      showToast('Failed to open preview window.', 'danger');
     }
-      previewWindow.document.write(`<!DOCTYPE html>
+  }
+  previewWindow.document.write(`<!DOCTYPE html>
                 <html lang="en">
                 <head>
                     <meta charset="UTF-8">
@@ -1500,61 +1500,530 @@ function myFunction() {
                     ${htmlContent}
                 </body>
                 </html>`);
-      previewWindow.document.close();
-      showToast('Template preview opened in new tab!', 'success');
+  previewWindow.document.close();
+  showToast('Template preview opened in new tab!', 'success');
+}
+// Initialize the app
+document.addEventListener('DOMContentLoaded', () => {
+  loadData();
+  updateStats();
+  clearChat();
+  document.getElementById('triggerInput').addEventListener('input', () => {
+    const input = document.getElementById('triggerInput');
+    if (input.value.trim()) {
+      document.getElementById('addTriggerBtn').disabled = false;
+    } else {
+      document.getElementById('addTriggerBtn').disabled = true;
     }
-    // Initialize the app
-    document.addEventListener('DOMContentLoaded', () => {
-      loadData();
-      updateStats();
-      clearChat();
-      document.getElementById('triggerInput').addEventListener('input', () => {
-        const input = document.getElementById('triggerInput');
-        if (input.value.trim()) {
-          document.getElementById('addTriggerBtn').disabled = false;
-        } else {
-          document.getElementById('addTriggerBtn').disabled = true;
-        }
-      });
-      document.getElementById('csvUpload').addEventListener('change', handleCSVUpload);
-    // document.getElementById('csvDropZone').addEventListener('dragover', handleDragOver);
-    //  document.getElementById('csvDropZone').addEventListener('dragleave', handleDragLeave);
-    //  document.getElementById('csvDropZone').addEventListener('drop', handleDrop);
-      document.getElementById('searchTriggers').addEventListener('input', filterTriggers);
-   //   document.getElementById('addSampleDataBtn').addEventListener('click', addSampleData);
-    //  document.getElementById('validateBotBtn').addEventListener('click', validateBot);
-    //  document.getElementById('showStatsBtn').addEventListener('click', showStats);
-    //  document.getElementById('optimizeBotBtn').addEventListener('click', optimizeBot);
-    //  document.getElementById('exportDataBtn').addEventListener('click', exportData);
-     // document.getElementById('importDataBtn').addEventListener('click', importData);
-    //  document.getElementById('clearAllDataBtn').addEventListener('click', clearAllData);
-     // document.getElementById('scrollToTopBtn').addEventListener('click', scrollToTop);
-    //  document.getElementById('sendPreviewMessageBtn').addEventListener('click', sendPreviewMessage);
-    //  document.getElementById('clearChatBtn').addEventListener('click', clearChat);
-      document.getElementById('previewInput').addEventListener('keypress', function (e) {
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          sendPreviewMessage();
-        }
-      });
-      document.querySelectorAll('.code-tab').forEach(tab => {
-        tab.addEventListener('click', function (e) {
-          e.preventDefault();
-          switchCodeTab(this.getAttribute('data-tab'));
-        });
-      });
-      // Initialize the first tab
-      const firstTab = document.querySelector('.code-tab');
-      if (firstTab) {
-        firstTab.classList.add('active');
-        const firstTabName = firstTab.getAttribute('data-tab');
-        switchCodeTab(firstTabName);
-      }
+  });
+  document.getElementById('csvUpload').addEventListener('change', handleCSVUpload);
+  // document.getElementById('csvDropZone').addEventListener('dragover', handleDragOver);
+  //  document.getElementById('csvDropZone').addEventListener('dragleave', handleDragLeave);
+  //  document.getElementById('csvDropZone').addEventListener('drop', handleDrop);
+  document.getElementById('searchTriggers').addEventListener('input', filterTriggers);
+  //   document.getElementById('addSampleDataBtn').addEventListener('click', addSampleData);
+  //  document.getElementById('validateBotBtn').addEventListener('click', validateBot);
+  //  document.getElementById('showStatsBtn').addEventListener('click', showStats);
+  //  document.getElementById('optimizeBotBtn').addEventListener('click', optimizeBot);
+  //  document.getElementById('exportDataBtn').addEventListener('click', exportData);
+  // document.getElementById('importDataBtn').addEventListener('click', importData);
+  //  document.getElementById('clearAllDataBtn').addEventListener('click', clearAllData);
+  // document.getElementById('scrollToTopBtn').addEventListener('click', scrollToTop);
+  //  document.getElementById('sendPreviewMessageBtn').addEventListener('click', sendPreviewMessage);
+  //  document.getElementById('clearChatBtn').addEventListener('click', clearChat);
+  document.getElementById('previewInput').addEventListener('keypress', function (e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      sendPreviewMessage();
+    }
+  });
+  document.querySelectorAll('.code-tab').forEach(tab => {
+    tab.addEventListener('click', function (e) {
+      e.preventDefault();
+      switchCodeTab(this.getAttribute('data-tab'));
+    });
+  });
+  // Initialize the first tab
+  const firstTab = document.querySelector('.code-tab');
+  if (firstTab) {
+    firstTab.classList.add('active');
+    const firstTabName = firstTab.getAttribute('data-tab');
+    switchCodeTab(firstTabName);
+  }
+});
+
+// ========================================
+// Bootstrap tooltips initialization
+const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+tooltipTriggerList.forEach(tooltipTriggerEl => {
+  new bootstrap.Tooltip(tooltipTriggerEl);
+});
+
+// ========================================
+// SNIPPET MANAGER FUNCTIONALITY
+// ========================================
+
+let snippets = JSON.parse(localStorage.getItem('chatbotSnippets')) || [];
+let currentSnippet = null;
+let snippetEditorOpen = false;
+
+// Snippet Manager Functions
+function toggleSnippetEditor() {
+  const editor = document.getElementById('snippetEditor');
+  const list = document.getElementById('snippetList');
+
+  if (snippetEditorOpen) {
+    editor.style.display = 'none';
+    list.style.display = 'block';
+    snippetEditorOpen = false;
+    currentSnippet = null;
+    clearSnippetEditor();
+  } else {
+    editor.style.display = 'block';
+    list.style.display = 'none';
+    snippetEditorOpen = true;
+    document.getElementById('snippetName').focus();
+  }
+}
+
+function clearSnippetEditor() {
+  document.getElementById('snippetName').value = '';
+  document.getElementById('snippetCategory').value = 'html';
+  document.getElementById('htmlCode').value = '';
+  document.getElementById('cssCode').value = '';
+  document.getElementById('jsCode').value = '';
+  clearConsole();
+
+  // Clear preview
+  const iframe = document.getElementById('snippetPreview');
+  iframe.src = 'about:blank';
+}
+
+function saveSnippet() {
+  const name = document.getElementById('snippetName').value.trim();
+  const category = document.getElementById('snippetCategory').value;
+  const htmlCode = document.getElementById('htmlCode').value;
+  const cssCode = document.getElementById('cssCode').value;
+  const jsCode = document.getElementById('jsCode').value;
+
+  if (!name) {
+    showToast('Please enter a snippet name', 'warning');
+    return;
+  }
+
+  const snippet = {
+    id: currentSnippet ? currentSnippet.id : Date.now(),
+    name: name,
+    category: category,
+    html: htmlCode,
+    css: cssCode,
+    javascript: jsCode,
+    created: currentSnippet ? currentSnippet.created : new Date().toISOString(),
+    modified: new Date().toISOString()
+  };
+
+  if (currentSnippet) {
+    // Update existing snippet
+    const index = snippets.findIndex(s => s.id === currentSnippet.id);
+    if (index !== -1) {
+      snippets[index] = snippet;
+    }
+  } else {
+    // Add new snippet
+    snippets.push(snippet);
+  }
+
+  localStorage.setItem('chatbotSnippets', JSON.stringify(snippets));
+  showToast('Snippet saved successfully!', 'success');
+  toggleSnippetEditor();
+  renderSnippets();
+}
+
+function runSnippet() {
+  const htmlCode = document.getElementById('htmlCode').value;
+  const cssCode = document.getElementById('cssCode').value;
+  const jsCode = document.getElementById('jsCode').value;
+
+  const fullHTML = `
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Snippet Preview</title>
+          <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+          <style>
+            body { padding: 1rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+            ${cssCode}
+          </style>
+        </head>
+        <body>
+          ${htmlCode}
+          
+          <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+          <script>
+            // Override console methods to capture output
+            const originalConsole = {
+              log: console.log,
+              error: console.error,
+              warn: console.warn,
+              info: console.info
+            };
+            
+            function postMessage(type, message) {
+              parent.postMessage({
+                type: 'console',
+                level: type,
+                message: message
+              }, '*');
+            }
+            
+            console.log = function(...args) {
+              postMessage('log', args.join(' '));
+              originalConsole.log.apply(console, args);
+            };
+            
+            console.error = function(...args) {
+              postMessage('error', args.join(' '));
+              originalConsole.error.apply(console, args);
+            };
+            
+            console.warn = function(...args) {
+              postMessage('warn', args.join(' '));
+              originalConsole.warn.apply(console, args);
+            };
+            
+            console.info = function(...args) {
+              postMessage('info', args.join(' '));
+              originalConsole.info.apply(console, args);
+            };
+            
+            // Catch errors
+            window.addEventListener('error', function(e) {
+              postMessage('error', e.message + ' at line ' + e.lineno);
+            });
+            
+            try {
+              ${jsCode}
+            } catch (error) {
+              postMessage('error', error.message);
+            }
+          </script>
+        </body>
+        </html>
+      `;
+
+  const iframe = document.getElementById('snippetPreview');
+  const blob = new Blob([fullHTML], { type: 'text/html' });
+  iframe.src = URL.createObjectURL(blob);
+
+  // Switch to preview tab
+  document.getElementById('preview-tab').click();
+}
+
+function cancelSnippetEditor() {
+  if (confirm('Are you sure you want to cancel? Any unsaved changes will be lost.')) {
+    toggleSnippetEditor();
+  }
+}
+
+function editSnippet(id) {
+  const snippet = snippets.find(s => s.id === id);
+  if (!snippet) return;
+
+  currentSnippet = snippet;
+  document.getElementById('snippetName').value = snippet.name;
+  document.getElementById('snippetCategory').value = snippet.category;
+  document.getElementById('htmlCode').value = snippet.html || '';
+  document.getElementById('cssCode').value = snippet.css || '';
+  document.getElementById('jsCode').value = snippet.javascript || '';
+
+  toggleSnippetEditor();
+}
+
+function deleteSnippet(id) {
+  if (confirm('Are you sure you want to delete this snippet?')) {
+    snippets = snippets.filter(s => s.id !== id);
+    localStorage.setItem('chatbotSnippets', JSON.stringify(snippets));
+    renderSnippets();
+    showToast('Snippet deleted successfully!', 'success');
+  }
+}
+
+function duplicateSnippet(id) {
+  const snippet = snippets.find(s => s.id === id);
+  if (!snippet) return;
+
+  const duplicate = {
+    ...snippet,
+    id: Date.now(),
+    name: snippet.name + ' (Copy)',
+    created: new Date().toISOString(),
+    modified: new Date().toISOString()
+  };
+
+  snippets.push(duplicate);
+  localStorage.setItem('chatbotSnippets', JSON.stringify(snippets));
+  renderSnippets();
+  showToast('Snippet duplicated successfully!', 'success');
+}
+
+function exportSnippet(id) {
+  const snippet = snippets.find(s => s.id === id);
+  if (!snippet) return;
+
+  const exportData = {
+    name: snippet.name,
+    category: snippet.category,
+    html: snippet.html,
+    css: snippet.css,
+    javascript: snippet.javascript
+  };
+
+  const dataStr = JSON.stringify(exportData, null, 2);
+  const dataBlob = new Blob([dataStr], { type: 'application/json' });
+  const url = URL.createObjectURL(dataBlob);
+
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${snippet.name.replace(/\s+/g, '_')}_snippet.json`;
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+function renderSnippets() {
+  const container = document.getElementById('snippetList');
+
+  if (snippets.length === 0) {
+    container.innerHTML = `
+          <div class="text-center text-muted py-3">
+            <i class="bi bi-code-square" style="font-size: 2rem;"></i>
+            <p class="mb-0">No snippets created yet</p>
+            <small>Click "New Snippet" to get started</small>
+          </div>
+        `;
+    return;
+  }
+
+  const grouped = snippets.reduce((acc, snippet) => {
+    if (!acc[snippet.category]) {
+      acc[snippet.category] = [];
+    }
+    acc[snippet.category].push(snippet);
+    return acc;
+  }, {});
+
+  let html = '';
+  Object.keys(grouped).forEach(category => {
+    html += `
+          <div class="snippet-category mb-3">
+            <h6 class="text-primary mb-2">
+              <i class="bi bi-folder"></i> ${category.toUpperCase()}
+            </h6>
+            <div class="snippet-items">
+        `;
+
+    grouped[category].forEach(snippet => {
+      const previewText = snippet.html ? snippet.html.substring(0, 50) + '...' : 'No HTML content';
+      html += `
+            <div class="snippet-item">
+              <div class="snippet-name">${snippet.name}</div>
+              <span class="snippet-category">${snippet.category}</span>
+              <div class="snippet-preview-text">${previewText}</div>
+              <div class="snippet-item-actions">
+                <button class="btn btn-outline-primary" onclick="editSnippet(${snippet.id})" title="Edit">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-outline-info" onclick="previewSnippet(${snippet.id})" title="Preview">
+                  <i class="bi bi-eye"></i>
+                </button>
+                <button class="btn btn-outline-secondary" onclick="duplicateSnippet(${snippet.id})" title="Duplicate">
+                  <i class="bi bi-files"></i>
+                </button>
+                <button class="btn btn-outline-success" onclick="exportSnippet(${snippet.id})" title="Export">
+                  <i class="bi bi-download"></i>
+                </button>
+                <button class="btn btn-outline-danger" onclick="deleteSnippet(${snippet.id})" title="Delete">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            </div>
+          `;
     });
 
-    // ========================================
-    // Bootstrap tooltips initialization
-    const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
-    tooltipTriggerList.forEach(tooltipTriggerEl => {
-      new bootstrap.Tooltip(tooltipTriggerEl);
+    html += `
+            </div>
+          </div>
+        `;
+  });
+
+  container.innerHTML = html;
+}
+
+function previewSnippet(id) {
+  const snippet = snippets.find(s => s.id === id);
+  if (!snippet) return;
+
+  // Set the snippet data in the editor
+  document.getElementById('htmlCode').value = snippet.html || '';
+  document.getElementById('cssCode').value = snippet.css || '';
+  document.getElementById('jsCode').value = snippet.javascript || '';
+
+  // Run the snippet
+  runSnippet();
+
+  // Show a temporary message
+  showToast(`Previewing: ${snippet.name}`, 'info');
+}
+
+function clearConsole() {
+  const consoleOutput = document.getElementById('consoleOutput');
+  consoleOutput.innerHTML = '';
+}
+
+function addConsoleMessage(level, message) {
+  const consoleOutput = document.getElementById('consoleOutput');
+  const messageElement = document.createElement('div');
+  messageElement.className = `console-log ${level}`;
+  messageElement.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+  consoleOutput.appendChild(messageElement);
+  consoleOutput.scrollTop = consoleOutput.scrollHeight;
+}
+
+// Listen for console messages from the iframe
+window.addEventListener('message', function (event) {
+  if (event.data && event.data.type === 'console') {
+    addConsoleMessage(event.data.level, event.data.message);
+  }
+});
+
+// Auto-save snippet content as user types
+function setupSnippetAutoSave() {
+  const editors = ['htmlCode', 'cssCode', 'jsCode'];
+  editors.forEach(editorId => {
+    const editor = document.getElementById(editorId);
+    if (editor) {
+      editor.addEventListener('input', debounce(() => {
+        if (snippetEditorOpen && currentSnippet) {
+          // Auto-save current snippet
+          saveSnippet();
+        }
+      }, 2000));
+    }
+  });
+}
+
+// Add sample snippets
+function addSampleSnippets() {
+  const samples = [
+    {
+      id: Date.now() + 1,
+      name: 'Bootstrap Card',
+      category: 'bootstrap',
+      html: `<div class="card" style="width: 18rem;">
+  <div class="card-body">
+    <h5 class="card-title">Card title</h5>
+    <p class="card-text">Some quick example text to build on the card title and make up the bulk of the card's content.</p>
+    <a href="#" class="btn btn-primary">Go somewhere</a>
+  </div>
+</div>`,
+      css: `.card {
+  transition: transform 0.2s;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}`,
+      javascript: `console.log('Bootstrap card loaded successfully!');
+
+document.querySelector('.btn-primary').addEventListener('click', function(e) {
+  e.preventDefault();
+  alert('Button clicked!');
+});`,
+      created: new Date().toISOString(),
+      modified: new Date().toISOString()
+    },
+    {
+      id: Date.now() + 2,
+      name: 'Interactive Counter',
+      category: 'javascript',
+      html: `<div class="text-center p-4">
+  <h2 id="counter">0</h2>
+  <div class="mt-3">
+    <button id="decrement" class="btn btn-danger me-2">-</button>
+    <button id="increment" class="btn btn-success me-2">+</button>
+    <button id="reset" class="btn btn-secondary">Reset</button>
+  </div>
+</div>`,
+      css: `#counter {
+  font-size: 3rem;
+  font-weight: bold;
+  color: #007bff;
+  transition: all 0.3s ease;
+}
+
+.btn {
+  min-width: 60px;
+}`,
+      javascript: `let count = 0;
+const counterElement = document.getElementById('counter');
+
+function updateCounter() {
+  counterElement.textContent = count;
+  console.log('Counter updated to:', count);
+}
+
+document.getElementById('increment').addEventListener('click', () => {
+  count++;
+  updateCounter();
+});
+
+document.getElementById('decrement').addEventListener('click', () => {
+  count--;
+  updateCounter();
+});
+
+document.getElementById('reset').addEventListener('click', () => {
+  count = 0;
+  updateCounter();
+});
+
+console.log('Counter initialized!');`,
+      created: new Date().toISOString(),
+      modified: new Date().toISOString()
+    }
+  ];
+
+  samples.forEach(sample => {
+    if (!snippets.find(s => s.name === sample.name)) {
+      snippets.push(sample);
+    }
+  });
+
+  localStorage.setItem('chatbotSnippets', JSON.stringify(snippets));
+  renderSnippets();
+  showToast('Sample snippets added!', 'success');
+}
+
+// Initialize snippet manager
+function initializeSnippetManager() {
+  renderSnippets();
+  setupSnippetAutoSave();
+
+  // Add tab switching functionality
+  document.querySelectorAll('#snippetTabs .nav-link').forEach(tab => {
+    tab.addEventListener('click', function () {
+      // Update preview when switching to preview tab
+      if (this.id === 'preview-tab') {
+        setTimeout(() => runSnippet(), 100);
+      }
     });
+  });
+}
+
+// Call initialization when DOM is loaded
+document.addEventListener('DOMContentLoaded', function () {
+  initializeSnippetManager();
+});

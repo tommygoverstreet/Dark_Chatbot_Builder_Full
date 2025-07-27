@@ -303,6 +303,96 @@
               <i class="bi bi-trash"></i> Clear Chat </button>
           </div>
         </div>
+        <!-- Snippet Manager -->
+        <div class="card mb-4">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h5><i class="bi bi-code-square text-primary"></i> Snippet Manager</h5>
+            <button class="btn btn-sm btn-outline-primary" onclick="toggleSnippetEditor()">
+              <i class="bi bi-plus-circle"></i> New Snippet </button>
+          </div>
+          <div class="card-body">
+            <!-- Snippet Editor (Initially Hidden) -->
+            <div id="snippetEditor" class="snippet-editor" style="display: none;">
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <input type="text" id="snippetName" class="form-control form-control-sm"
+                    placeholder="Snippet name...">
+                </div>
+                <div class="col-md-4">
+                  <select id="snippetCategory" class="form-select form-select-sm">
+                    <option value="html">HTML</option>
+                    <option value="css">CSS</option>
+                    <option value="javascript">JavaScript</option>
+                    <option value="bootstrap">Bootstrap</option>
+                    <option value="component">Component</option>
+                  </select>
+                </div>
+              </div>
+              <!-- Code Editor Tabs -->
+              <ul class="nav nav-tabs nav-tabs-sm" id="snippetTabs">
+                <li class="nav-item">
+                  <button class="nav-link active" id="html-tab" data-bs-toggle="tab" data-bs-target="#html-pane">
+                    <i class="bi bi-filetype-html"></i> HTML </button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" id="css-tab" data-bs-toggle="tab" data-bs-target="#css-pane">
+                    <i class="bi bi-filetype-css"></i> CSS </button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" id="js-tab" data-bs-toggle="tab" data-bs-target="#js-pane">
+                    <i class="bi bi-filetype-js"></i> JS </button>
+                </li>
+                <li class="nav-item">
+                  <button class="nav-link" id="preview-tab" data-bs-toggle="tab" data-bs-target="#preview-pane">
+                    <i class="bi bi-eye"></i> Preview </button>
+                </li>
+              </ul>
+              <div class="tab-content" id="snippetTabContent">
+                <!-- HTML Tab -->
+                <div class="tab-pane fade show active" id="html-pane">
+                  <textarea id="htmlCode" class="code-editor" placeholder="Enter HTML code here..."></textarea>
+                </div>
+                <!-- CSS Tab -->
+                <div class="tab-pane fade" id="css-pane">
+                  <textarea id="cssCode" class="code-editor" placeholder="Enter CSS code here..."></textarea>
+                </div>
+                <!-- JavaScript Tab -->
+                <div class="tab-pane fade" id="js-pane">
+                  <textarea id="jsCode" class="code-editor" placeholder="Enter JavaScript code here..."></textarea>
+                </div>
+                <!-- Preview Tab -->
+                <div class="tab-pane fade" id="preview-pane">
+                  <div class="preview-container">
+                    <iframe id="snippetPreview" class="snippet-preview"></iframe>
+                  </div>
+                  <div class="console-container mt-2">
+                    <div class="console-header">
+                      <small><i class="bi bi-terminal"></i> Console</small>
+                      <button class="btn btn-sm btn-outline-secondary" onclick="clearConsole()">Clear</button>
+                    </div>
+                    <div id="consoleOutput" class="console-output"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="snippet-actions mt-3">
+                <button class="btn btn-success btn-sm" onclick="saveSnippet()">
+                  <i class="bi bi-check-lg"></i> Save Snippet </button>
+                <button class="btn btn-info btn-sm" onclick="runSnippet()">
+                  <i class="bi bi-play-fill"></i> Run Preview </button>
+                <button class="btn btn-secondary btn-sm" onclick="cancelSnippetEditor()">
+                  <i class="bi bi-x-lg"></i> Cancel </button>
+              </div>
+            </div>
+            <!-- Snippet List -->
+            <div id="snippetList" class="snippet-list">
+              <div class="text-center text-muted py-3">
+                <i class="bi bi-code-square" style="font-size: 2rem;"></i>
+                <p class="mb-0">No snippets created yet</p>
+                <small>Click "New Snippet" to get started</small>
+              </div>
+            </div>
+          </div>
+        </div>
         <!-- CSV Manager -->
         <div class="card mb-4">
           <div class="card-header">
@@ -335,6 +425,8 @@
                 <i class="bi bi-graph-up"></i> Show Statistics </button>
               <button class="btn btn-outline-warning" onclick="optimizeBot()">
                 <i class="bi bi-speedometer2"></i> Optimize Bot </button>
+              <button class="btn btn-outline-secondary" onclick="addSampleSnippets()">
+                <i class="bi bi-code-square"></i> Add Sample Snippets </button>
             </div>
           </div>
         </div>

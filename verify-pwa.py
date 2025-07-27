@@ -114,6 +114,70 @@ def check_html_meta_tags():
             status = "✅" if has_tag else "❌"
             print(f"  {status} {tag_name}")
 
+def check_snippet_manager():
+    """Check snippet manager functionality"""
+    print("\n🔍 Checking Snippet Manager...")
+    if check_file_exists("index.html", "Main HTML File"):
+        with open("index.html", "r", encoding="utf-8") as f:
+            html_content = f.read()
+        
+        # Check for snippet manager HTML elements
+        snippet_features = {
+            "Snippet Manager Section": 'id="snippetEditor"',
+            "Code Editor Tabs": 'id="snippetTabs"',
+            "HTML Code Editor": 'id="htmlCode"',
+            "CSS Code Editor": 'id="cssCode"',
+            "JavaScript Code Editor": 'id="jsCode"',
+            "Preview Iframe": 'id="snippetPreview"',
+            "Console Output": 'id="consoleOutput"',
+            "Snippet List": 'id="snippetList"'
+        }
+        
+        for feature_name, element_id in snippet_features.items():
+            has_feature = element_id in html_content
+            status = "✅" if has_feature else "❌"
+            print(f"  {status} {feature_name}")
+    
+    # Check JavaScript functionality
+    if check_file_exists("app.js", "Application JavaScript"):
+        with open("app.js", "r", encoding="utf-8") as f:
+            js_content = f.read()
+        
+        js_functions = {
+            "Toggle Snippet Editor": "toggleSnippetEditor",
+            "Save Snippet": "saveSnippet",
+            "Run Snippet": "runSnippet",
+            "Render Snippets": "renderSnippets",
+            "Console Management": "clearConsole",
+            "Sample Snippets": "addSampleSnippets"
+        }
+        
+        for func_name, func_signature in js_functions.items():
+            has_function = func_signature in js_content
+            status = "✅" if has_function else "❌"
+            print(f"  {status} {func_name}")
+
+def check_css_styles():
+    """Check CSS styles for snippet manager"""
+    print("\n🔍 Checking Snippet Manager Styles...")
+    if check_file_exists("custom.css", "Custom CSS"):
+        with open("custom.css", "r", encoding="utf-8") as f:
+            css_content = f.read()
+        
+        css_classes = {
+            "Snippet Editor": ".snippet-editor",
+            "Code Editor": ".code-editor",
+            "Console Container": ".console-container",
+            "Console Output": ".console-output",
+            "Snippet Item": ".snippet-item",
+            "Preview Container": ".preview-container"
+        }
+        
+        for class_name, css_selector in css_classes.items():
+            has_class = css_selector in css_content
+            status = "✅" if has_class else "❌"
+            print(f"  {status} {class_name}")
+
 def check_deployment_files():
     """Check deployment configuration files"""
     print("\n🔍 Checking Deployment Files...")
@@ -157,6 +221,8 @@ def main():
     check_icons()
     check_seo_files()
     check_html_meta_tags()
+    check_snippet_manager()
+    check_css_styles()
     check_deployment_files()
     
     print("\n" + "=" * 50)
